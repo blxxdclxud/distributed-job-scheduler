@@ -6,4 +6,4 @@ linting:
   image: golangci/golangci-lint
 
   script:
-    - golangci-lint run --issues-exit-code=0 ./
+    - golangci-lint run --issues-exit-code=0 ./...
