@@ -1,8 +1,7 @@
-module gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19
+module DistributedJobScheduling
 
-go 1.24.2
+go 1.23.4
 
-require (
-	github.com/Shopify/go-lua v0.0.0-20240527182111-9ab1540f3f5f // indirect
-	github.com/rabbitmq/amqp091-go v1.10.0 // indirect
-)
+require go.uber.org/zap v1.27.0
+
+require go.uber.org/multierr v1.10.0 // indirect
