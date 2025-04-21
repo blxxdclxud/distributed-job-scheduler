@@ -1,6 +1,6 @@
 module DistributedJobScheduling
 
-go 1.23.4
+go 1.24.2
 
 require go.uber.org/zap v1.27.0
 
