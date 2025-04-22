@@ -1,4 +1,4 @@
-package executor
+package Rabbit
 
 type TaskReply struct {
 	Results  interface{}

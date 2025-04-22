@@ -1,4 +1,4 @@
-package HealthReporter
+package Rabbit
 
 type HealthReport struct {
 	WorkerId  string `json:"workerId"`

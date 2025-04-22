@@ -5,9 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	amqp "github.com/rabbitmq/amqp091-go"
-	"gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/worker/HealthReporter"
-	"gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/worker/executor"
-	"gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/worker/globals"
+	"gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/shared/globals"
+	"gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/shared/models/Rabbit"
 	"log"
 	"os"
 	"os/signal"
@@ -96,7 +95,7 @@ func Test_Health(t *testing.T) {
 	failOnError(err, "Failed to register a consumer")
 	go func() {
 		for d := range msgs {
-			var m HealthReporter.HealthReport
+			var m Rabbit.HealthReport
 			e := json.Unmarshal(d.Body, &m)
 			if e != nil {
 				fmt.Println(err)
@@ -118,7 +117,7 @@ func Test_Health(t *testing.T) {
 	failOnError(err, "Failed to register a consumer")
 	go func() {
 		for d := range msgs2 {
-			var m executor.TaskReply
+			var m Rabbit.TaskReply
 			e := json.Unmarshal(d.Body, &m)
 			if e != nil {
 				fmt.Println(err)
@@ -180,7 +179,7 @@ func Test_Health(t *testing.T) {
 	}()
 	select {
 	case <-done:
-		fmt.Println("ddddone")
+		fmt.Println("get id")
 	case <-time.After(10 * time.Second):
 		fmt.Println("Failed to get Id")
 		return

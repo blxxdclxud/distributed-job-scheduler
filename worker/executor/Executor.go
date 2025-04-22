@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"github.com/Shopify/go-lua"
 	amqp "github.com/rabbitmq/amqp091-go"
+	"gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/shared/globals"
+	"gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/shared/models/Rabbit"
 	"gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/worker/HealthReporter"
-	globals "gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/worker/globals"
 	"gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/worker/messaging"
 	"log/slog"
 )
@@ -88,7 +89,7 @@ func (e *Executor) ListenTasks(workerId string) {
 			if err != nil {
 				e.log.Error("Failed to process task", globals.ResultExchange, err)
 			}
-			message := TaskReply{
+			message := Rabbit.TaskReply{
 				Results:  res,
 				WorkerId: workerId,
 				Err:      err,

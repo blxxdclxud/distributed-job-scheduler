@@ -3,7 +3,8 @@ package HealthReporter
 import (
 	"context"
 	amqp "github.com/rabbitmq/amqp091-go"
-	"gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/worker/globals"
+	"gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/shared/globals"
+	"gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/shared/models/Rabbit"
 	"gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/worker/messaging"
 	"log/slog"
 	"time"
@@ -40,7 +41,7 @@ func (h *HealthReporter) SendHealthChecks(workerId string) {
 	for {
 		select {
 		case <-ticker.C:
-			message := HealthReport{WorkerId: workerId, TimeStamp: time.Now().Unix()}
+			message := Rabbit.HealthReport{WorkerId: workerId, TimeStamp: time.Now().Unix()}
 			routing_key := "heartbeat." + workerId
 			err := h.RabbitMQPublisher.PublishJSON(ctx, routing_key, message)
 			if err != nil {

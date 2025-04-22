@@ -4,8 +4,8 @@ import (
 	"context"
 	"github.com/google/uuid"
 	amqp "github.com/rabbitmq/amqp091-go"
-	worker2 "gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/worker"
-	"gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/worker/globals"
+	"gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/shared/globals"
+	"gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/shared/models"
 	"gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/worker/messaging"
 	"log"
 	"log/slog"
@@ -40,7 +40,7 @@ func main() {
 	}
 	time.Sleep(1 * time.Second)
 
-	worker := worker2.NewWorker(conn, log, id)
+	worker := models.NewWorker(conn, log, id)
 	worker.Start()
 	time.Sleep(1 * time.Second)
 
