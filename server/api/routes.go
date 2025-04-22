@@ -5,6 +5,7 @@ import (
 	"net/http"
 )
 
+// RegisterRoutes creates a router mux.Router that has endpoints of the API assigned to it
 func RegisterRoutes() *mux.Router {
 	router := mux.NewRouter()
 

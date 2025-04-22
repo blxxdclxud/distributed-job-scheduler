@@ -4,6 +4,7 @@ type JobPriority int
 
 const (
 	LowPriority JobPriority = iota
+	MidPriority
 	HighPriority
 )
 

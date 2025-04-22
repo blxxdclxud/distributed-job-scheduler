@@ -3,24 +3,25 @@
 ------
 
 ### Submitting new job
+
 <details>
     <summary><code>POST</code> <code><b>/submit</b></code> <code>(submits a new job to the scheduler)</code></summary>
 
 ##### Parameters
+
 > | name | required | data type | description |
 > | ---- |----------| --------- | ----------- |
 > | body | yes      | object (JSON) | Job submission payload with Lua script and priority level (optional) |
 
-
 ##### JSON Body Fields
 
-> | field     | type     | required | description                                   |
-> |-----------|----------|----------|-----------------------------------------------|
-> | script    | string   | yes      | Lua code to execute on a worker               |
-> | priority  | integer  | no       | Job priority (low = 0, high = 1), Default: 0. |
-
+> | field     | type     | required | description                                            |
+> |-----------|----------|----------|--------------------------------------------------------|
+> | script    | string   | yes      | Lua code to execute on a worker                        |
+> | priority  | integer  | no       | Job priority (low = 0, mid = 1, high = 2), Default: 0. |
 
 ##### Example Request body
+
 ```json
 {
   "script": "print('wassup!')",
@@ -29,21 +30,24 @@
 ```
 
 ##### Responses
+
 See `/status/{id}` endpoint response section.
 
 </details>
 
 ### Get status of the job
+
 <details>
     <summary><code>GET</code> <code><b>/status{id}</b></code> <code>(returns the current status of a submitted job)</code></summary>
 
 ##### Parameters
+
 > | name | required | data type | description     |
 > |------|----------|-----------|-----------------|
 > | id   | yes      | integer   | Existing job id |
 
-
 ##### Example Request URL
+
 ```text
  http://localhost:8080/status/123
 ```
@@ -52,7 +56,7 @@ See `/status/{id}` endpoint response section.
 
 > | http code | content-type       | response    |
 > |-----------|--------------------|-------------|
-> | `200`     | `application/json`               | JSON object |
+> | `200`     | `application/json` | JSON object |
 > | `400`     | `application/json` | JSON object |
 > | `500`     | `application/json` | JSON object |
 
@@ -65,7 +69,6 @@ See `/status/{id}` endpoint response section.
 > | job_id  | integer | Unique ID assigned to the job                                |
 > | status  | string  | Initial job status (PENDING, RUNNING, COMPLETED, FAILED)     |
 > | result  | string  | Lua script's result, absent if job status is not "COMPLETED" |
-
 
 ```json
 {
@@ -80,9 +83,6 @@ See `/status/{id}` endpoint response section.
 > | Field | Type   | Description   |
 > |-------|--------|---------------|
 > | error | string | Error message |
-
-
-
 
 ```json
 {
