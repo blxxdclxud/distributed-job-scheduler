@@ -1,0 +1,9 @@
+stages:
+  - lint
+
+linting:
+  stage: lint
+  image: golangci/golangci-lint
+
+  script:
+    - golangci-lint run --issues-exit-code=0 ./...
