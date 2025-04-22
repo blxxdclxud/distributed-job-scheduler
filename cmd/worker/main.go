@@ -48,6 +48,9 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	err = register.PublishJSON(ctx, "register", id)
+	if err != nil {
+		log.Error("Failed to publish register message")
+	}
 
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
