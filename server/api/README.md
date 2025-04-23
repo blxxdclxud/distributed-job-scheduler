@@ -18,7 +18,7 @@
 > | field     | type     | required | description                                            |
 > |-----------|----------|----------|--------------------------------------------------------|
 > | script    | string   | yes      | Lua code to execute on a worker                        |
-> | priority  | integer  | no       | Job priority (low = 0, mid = 1, high = 2), Default: 0. |
+> | priority  | integer  | no       | Job priority (low = 3, mid = 2, high = 1), Default: 0. |
 
 ##### Example Request body
 

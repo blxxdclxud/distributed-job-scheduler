@@ -6,11 +6,11 @@ import (
 )
 
 // RegisterRoutes creates a router mux.Router that has endpoints of the API assigned to it
-func RegisterRoutes() *mux.Router {
+func RegisterRoutes(handler Handler) *mux.Router {
 	router := mux.NewRouter()
 
-	router.HandleFunc("/submit_job", SubmitJobHandler).Methods(http.MethodPost)
-	router.HandleFunc("/status/{id}", GetJobStatusHandler).Methods(http.MethodGet)
+	router.HandleFunc("/submit_job", handler.SubmitJobHandler).Methods(http.MethodPost)
+	router.HandleFunc("/status/{id}", handler.GetJobStatusHandler).Methods(http.MethodGet)
 
 	return router
 }
