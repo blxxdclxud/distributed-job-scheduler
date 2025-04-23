@@ -10,21 +10,24 @@ import (
 	"gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/worker/HealthReporter"
 	"gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/worker/messaging"
 	"log/slog"
+	"time"
 )
 
 type Executor struct {
-	conn              *amqp.Connection
-	log               *slog.Logger
-	RabbitMQPublisher HealthReporter.Publisher
+	conn               *amqp.Connection
+	log                *slog.Logger
+	RabbitMQPublisher  HealthReporter.Publisher
+	RabbitAckPublisher HealthReporter.Publisher
 }
 
 func NewExecutor(log *slog.Logger, RabbitMqConn *amqp.Connection) *Executor {
 	p, err := messaging.NewRabbitMQPublisher(RabbitMqConn, globals.ResultExchange, "topic")
+	ack, err := messaging.NewRabbitMQPublisher(RabbitMqConn, globals.WorkerStatusExchangeName, "topic")
 	if err != nil {
 		log.Error("NewExecutor", "err", err)
 		panic(err)
 	}
-	return &Executor{conn: RabbitMqConn, log: log, RabbitMQPublisher: p}
+	return &Executor{conn: RabbitMqConn, log: log, RabbitMQPublisher: p, RabbitAckPublisher: ack}
 }
 
 func (e *Executor) ListenTasks(workerId string) {
@@ -82,6 +85,12 @@ func (e *Executor) ListenTasks(workerId string) {
 		for d := range msgs {
 			e.log.Info("Received a message from server")
 			err = d.Ack(false)
+			AckMessage := Rabbit.HealthReport{WorkerId: workerId, TimeStamp: time.Now().Unix()}
+			routing_key_ack := "heartbeat." + workerId
+			err = e.RabbitAckPublisher.PublishJSON(context.Background(), routing_key_ack, AckMessage)
+			if err != nil {
+				e.log.Error("Failed to publish ack message", "error", err)
+			}
 			if err != nil {
 				e.log.Error("Failed to ack message", "error", err)
 			}
