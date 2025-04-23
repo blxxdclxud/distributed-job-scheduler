@@ -122,7 +122,7 @@ func Test_Health(t *testing.T) {
 			if e != nil {
 				fmt.Println(err)
 			}
-			fmt.Println(m.Results, m.Err, m.WorkerId)
+			fmt.Println(m.Results, m.Err, m.WorkerId, m.JobId)
 		}
 	}()
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -201,16 +201,23 @@ func Test_Health(t *testing.T) {
 	if err != nil {
 		fmt.Println(err)
 	}
-
 	luaScript := `local start = os.time(); while os.time() - start < 2 do end; local a, b = 10, 20; return a * b`
+	LuaTask := Rabbit.LuaTask{
+		LuaCode: luaScript,
+		JobId:   "1",
+	}
+	body, err := json.Marshal(LuaTask)
+	if err != nil {
+		log.Fatal(err)
+	}
 	err = ch.PublishWithContext(ctx,
 		globals.LuaProgramsExchange, // exchange
 		Id,                          // routing key
 		false,                       // mandatory
 		false,                       // immediate
 		amqp.Publishing{
-			ContentType: "text/plain",
-			Body:        []byte(luaScript),
+			ContentType: "application/json",
+			Body:        body,
 		})
 	failOnError(err, "Failed to publish a message")
 

@@ -2,6 +2,7 @@ package executor
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/Shopify/go-lua"
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -85,16 +86,21 @@ func (e *Executor) ListenTasks(workerId string) {
 		for d := range msgs {
 			e.log.Info("Received a message from server")
 			err = d.Ack(false)
+			if err != nil {
+				e.log.Error("Failed to ack message", "error", err)
+			}
 			AckMessage := Rabbit.HealthReport{WorkerId: workerId, TimeStamp: time.Now().Unix()}
 			routing_key_ack := "heartbeat." + workerId
 			err = e.RabbitAckPublisher.PublishJSON(context.Background(), routing_key_ack, AckMessage)
 			if err != nil {
 				e.log.Error("Failed to publish ack message", "error", err)
 			}
+			var task Rabbit.LuaTask
+			err := json.Unmarshal(d.Body, &task)
 			if err != nil {
-				e.log.Error("Failed to ack message", "error", err)
+				e.log.Error("Failed to unmarshal task", "error", err)
 			}
-			res, err := e.Task(d.Body, workerId)
+			res, err := e.Task(task.LuaCode, workerId)
 			if err != nil {
 				e.log.Error("Failed to process task", globals.ResultExchange, err)
 			}
@@ -102,6 +108,7 @@ func (e *Executor) ListenTasks(workerId string) {
 				Results:  res,
 				WorkerId: workerId,
 				Err:      err,
+				JobId:    task.JobId,
 			}
 			routing_key := "result." + workerId
 			err = e.RabbitMQPublisher.PublishJSON(context.Background(), routing_key, message)
@@ -112,11 +119,11 @@ func (e *Executor) ListenTasks(workerId string) {
 	}()
 
 }
-func (e *Executor) Task(body []byte, workerId string) (interface{}, error) {
+func (e *Executor) Task(body string, workerId string) (interface{}, error) {
 	l := lua.NewState()
 	lua.OpenLibraries(l)
 
-	if err := lua.DoString(l, string(body)); err != nil {
+	if err := lua.DoString(l, body); err != nil {
 		return nil, fmt.Errorf("lua execution error: %w", err)
 	}
 	if l.Top() == 0 {
