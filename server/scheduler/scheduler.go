@@ -13,6 +13,7 @@ type Scheduler struct {
 	Jobs              JobQueues             // Queues that store jobs grouped by priority level
 	ReceivedJobsCount int                   // A counter for amount of total number of jobs received from API, used for job ID generating
 	mutex             sync.Mutex
+	AllJobs           map[int]models.Job // Store all jobs
 }
 
 // NewScheduler initializes new Scheduler object with empty queues
@@ -83,6 +84,12 @@ func (s *Scheduler) EnqueueJob(priority sharedModels.JobPriority, script string)
 	s.ReceivedJobsCount++ // update counter
 
 	return job.JobID, nil
+}
+
+// GetJob returns the models.Job object by its ID
+func (s *Scheduler) GetJob(jobID int) (models.Job, error) {
+	// TODO: logic for this method
+	return s.AllJobs[jobID], nil
 }
 
 // RegisterWorker adds new worker to the system.
