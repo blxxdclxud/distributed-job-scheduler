@@ -1,7 +1,7 @@
 package main
 
 import (
-	"DNO/pkg/logger"
+	logger "gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/pkg/logger"
 	"log"
 )
 
