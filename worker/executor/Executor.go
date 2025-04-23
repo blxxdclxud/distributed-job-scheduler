@@ -57,7 +57,7 @@ func (e *Executor) ListenTasks(workerId string) {
 	}
 	err = ch.QueueBind(
 		q.Name,                      // queue name
-		"1",                         // routing key
+		workerId,                    // routing key
 		globals.LuaProgramsExchange, // exchange
 		false,
 		nil)

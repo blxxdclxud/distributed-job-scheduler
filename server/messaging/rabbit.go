@@ -2,77 +2,75 @@ package messaging
 
 import (
 	"context"
-	"encoding/json"
 	amqp "github.com/rabbitmq/amqp091-go"
-	"log/slog"
+	"gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/shared/globals"
 )
 
-type RabbitMQPublisher struct {
-	conn         *amqp.Connection
-	channel      *amqp.Channel
-	exchangeName string
-	exchangeType string
-	logger       *slog.Logger
+type Rabbit struct {
+	conn    *amqp.Connection
+	channel *amqp.Channel
 }
 
-func NewRabbitMQPublisher(
-	conn *amqp.Connection,
-	exchangeName string,
-	exchangeType string,
-) (*RabbitMQPublisher, error) {
-	channel, err := conn.Channel()
+func NewRabbit(conn *amqp.Connection) (*Rabbit, error) {
+	ch, err := conn.Channel()
 	if err != nil {
 		return nil, err
 	}
-
-	err = channel.ExchangeDeclare(
-		exchangeName,
-		exchangeType,
-		true,  // durable
-		false, // auto-deleted
-		false, // internal
-		false, // no-wait
-		nil,   // arguments
+	//declare exchange to send task
+	err = ch.ExchangeDeclare(
+		globals.LuaProgramsExchange, // name
+		"direct",                    // type
+		true,                        // durable
+		false,                       // auto-deleted
+		false,                       // internal
+		false,                       // no-wait
+		nil,                         // arguments
 	)
-	if err != nil {
-		channel.Close()
-		return nil, err
-	}
-
-	return &RabbitMQPublisher{
-		conn:         conn,
-		channel:      channel,
-		exchangeName: exchangeName,
-		exchangeType: exchangeType,
-	}, nil
+	// declare exchange to get worker status
+	err = ch.ExchangeDeclare(
+		globals.WorkerStatusExchangeName, // name
+		"topic",                          // type
+		true,                             // durable
+		false,                            // auto-deleted
+		false,                            // internal
+		false,                            // no-wait
+		nil,                              // arguments
+	)
+	// declare exchage for results
+	err = ch.ExchangeDeclare(
+		globals.ResultExchange, // name
+		"topic",                // type
+		true,                   // durable
+		false,                  // auto-deleted
+		false,                  // internal
+		false,                  // no-wait
+		nil,                    // arguments
+	)
+	//declare exchange for register
+	err = ch.ExchangeDeclare(
+		globals.RegisterExchange, // name
+		"direct",                 // type
+		true,                     // durable
+		false,                    // auto-deleted
+		false,                    // internal
+		false,                    // no-wait
+		nil,                      // arguments
+	)
+	return &Rabbit{conn, ch}, nil
 }
 
-func (p *RabbitMQPublisher) PublishJSON(
-	ctx context.Context,
-	routingKey string,
-	message interface{},
-) error {
-	body, err := json.Marshal(message)
+func (r *Rabbit) SendTaskToWorker(ctx context.Context, luaCode string, workerId string) error {
+	err := r.channel.PublishWithContext(ctx,
+		globals.LuaProgramsExchange, // exchange
+		workerId,                    // routing key
+		false,                       // mandatory
+		false,                       // immediate
+		amqp.Publishing{
+			ContentType: "text/plain",
+			Body:        []byte(luaCode),
+		})
 	if err != nil {
 		return err
-	}
-
-	return p.channel.PublishWithContext(
-		ctx,
-		p.exchangeName,
-		routingKey,
-		false, // mandatory
-		false, // immediate
-		amqp.Publishing{
-			ContentType: "application/json",
-			Body:        body,
-		},
-	)
-}
-
-func (p *RabbitMQPublisher) Close() error {
-	if p.channel != nil {
-		return p.channel.Close()
 	}
 	return nil
 }

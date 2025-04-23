@@ -172,7 +172,10 @@ func Test_Health(t *testing.T) {
 	done := make(chan bool)
 	go func() {
 		for d := range msgs5 {
-			Id = string(d.Body)
+			m := json.Unmarshal(d.Body, &Id)
+			if m != nil {
+				fmt.Println(m)
+			}
 			done <- true
 			return
 		}
@@ -180,6 +183,7 @@ func Test_Health(t *testing.T) {
 	select {
 	case <-done:
 		fmt.Println("get id")
+		time.Sleep(500 * time.Millisecond)
 	case <-time.After(10 * time.Second):
 		fmt.Println("Failed to get Id")
 		return
@@ -197,14 +201,12 @@ func Test_Health(t *testing.T) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	timer := time.NewTicker(5 * time.Second)
-	defer timer.Stop()
 
 	luaScript := `local start = os.time(); while os.time() - start < 2 do end; local a, b = 10, 20; return a * b`
 	err = ch.PublishWithContext(ctx,
 		globals.LuaProgramsExchange, // exchange
-		"1",                         // routing key
-		true,                        // mandatory
+		Id,                          // routing key
+		false,                       // mandatory
 		false,                       // immediate
 		amqp.Publishing{
 			ContentType: "text/plain",

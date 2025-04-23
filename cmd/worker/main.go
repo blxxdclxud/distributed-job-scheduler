@@ -38,8 +38,6 @@ func main() {
 	if err != nil {
 		log.Error("Failed to create RabbitMQ publisher")
 	}
-	time.Sleep(1 * time.Second)
-
 	worker := models.NewWorker(conn, log, id)
 	worker.Start()
 	time.Sleep(1 * time.Second)
@@ -51,7 +49,7 @@ func main() {
 	if err != nil {
 		log.Error("Failed to publish register message")
 	}
-
+	log.Info("Successfully published register message")
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 	<-sigChan
