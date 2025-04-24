@@ -7,7 +7,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func (r *Rabbit) ListenHeartBeat(c chan Rabbit2.HealthReport) {
+func (r *Rabbit) ListenHeartBeat(c chan Rabbit2.HealthReportWrapper) {
 	msgs, err := r.channel.Consume(
 		r.HeartBearQ.Name, // queue
 		"",                // consumer
@@ -17,6 +17,14 @@ func (r *Rabbit) ListenHeartBeat(c chan Rabbit2.HealthReport) {
 		false,             // no-wait
 		nil,               // args
 	)
+	if err != nil {
+		message := Rabbit2.HealthReportWrapper{
+			HealthReport: Rabbit2.HealthReport{},
+			Err:          err,
+		}
+		c <- message
+		return
+	}
 	for {
 		for d := range msgs {
 			var m Rabbit2.HealthReport
@@ -25,7 +33,11 @@ func (r *Rabbit) ListenHeartBeat(c chan Rabbit2.HealthReport) {
 				fmt.Printf("Failed to unmarshal", zap.Error(err))
 				return
 			}
-			c <- m
+			message := Rabbit2.HealthReportWrapper{
+				HealthReport: m,
+				Err:          err,
+			}
+			c <- message
 			fmt.Println(m.TimeStamp, m.WorkerId)
 		}
 	}

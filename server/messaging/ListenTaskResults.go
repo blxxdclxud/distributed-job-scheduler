@@ -7,7 +7,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func (r *Rabbit) ListenTaskResults(c chan Rabbit2.TaskReply) {
+func (r *Rabbit) ListenTaskResults(c chan Rabbit2.TaskReplyWrapper) {
 	msgs, err := r.channel.Consume(
 		r.TaskREsultQ.Name, // queue
 		"",                 // consumer
@@ -19,6 +19,11 @@ func (r *Rabbit) ListenTaskResults(c chan Rabbit2.TaskReply) {
 	)
 	if err != nil {
 		fmt.Println("Failed to register consumer")
+		message := Rabbit2.TaskReplyWrapper{
+			TaskReply: Rabbit2.TaskReply{},
+			Err:       err,
+		}
+		c <- message
 		return
 	}
 	for {
@@ -27,9 +32,12 @@ func (r *Rabbit) ListenTaskResults(c chan Rabbit2.TaskReply) {
 			err = json.Unmarshal(d.Body, &m)
 			if err != nil {
 				fmt.Printf("Failed to unmarshal", zap.Error(err))
-				return
 			}
-			c <- m
+			message := Rabbit2.TaskReplyWrapper{
+				TaskReply: m,
+				Err:       err,
+			}
+			c <- message
 			fmt.Println(m.Results, m.Err, m.WorkerId, m.JobId)
 		}
 	}

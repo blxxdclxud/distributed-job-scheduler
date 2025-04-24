@@ -24,9 +24,9 @@ func Test_Rabbit(t *testing.T) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	ch1 := make(chan Rabbit.HealthReport, 20)
-	ch2 := make(chan string, 20)
-	ch3 := make(chan Rabbit.TaskReply, 20)
+	ch1 := make(chan Rabbit.HealthReportWrapper, 20)
+	ch2 := make(chan Rabbit.RegistrationWrapper, 20)
+	ch3 := make(chan Rabbit.TaskReplyWrapper, 20)
 	go r.ListenHeartBeat(ch1)
 	go r.ListenRegister(ch2)
 	go r.ListenTaskResults(ch3)

@@ -6,3 +6,8 @@ type TaskReply struct {
 	JobId    string
 	Err      error
 }
+
+type TaskReplyWrapper struct {
+	TaskReply TaskReply
+	Err       error
+}
