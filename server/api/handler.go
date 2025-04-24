@@ -1,9 +1,9 @@
 package api
 
 import (
-	"DistributedJobScheduling/server/models"
-	"DistributedJobScheduling/server/scheduler"
-	sharedModels "DistributedJobScheduling/shared/models"
+	"gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/server/models"
+	"gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/server/scheduler"
+	sharedModels "gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/shared/models"
 	"encoding/json"
 	"github.com/gorilla/mux"
 	"net/http"

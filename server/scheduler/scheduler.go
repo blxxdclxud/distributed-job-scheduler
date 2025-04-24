@@ -1,8 +1,8 @@
 package scheduler
 
 import (
-	models "DistributedJobScheduling/server/models"
-	sharedModels "DistributedJobScheduling/shared/models"
+	models "gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/server/models"
+	sharedModels "gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/shared/models"
 	"sync"
 )
 
