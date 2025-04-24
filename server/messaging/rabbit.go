@@ -1,18 +1,21 @@
 package messaging
 
 import (
+	"fmt"
 	amqp "github.com/rabbitmq/amqp091-go"
+	"gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/server/utils/InitRabbit"
 	"gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/shared/globals"
-	"go.uber.org/zap"
 )
 
 type Rabbit struct {
-	conn    *amqp.Connection
-	channel *amqp.Channel
-	log     *zap.Logger
+	conn        *amqp.Connection
+	channel     *amqp.Channel
+	HeartBearQ  amqp.Queue
+	RegisteredQ amqp.Queue
+	TaskREsultQ amqp.Queue
 }
 
-func NewRabbit(conn *amqp.Connection, log *zap.Logger) (*Rabbit, error) {
+func NewRabbit(conn *amqp.Connection) (*Rabbit, error) {
 	ch, err := conn.Channel()
 	if err != nil {
 		return nil, err
@@ -57,5 +60,26 @@ func NewRabbit(conn *amqp.Connection, log *zap.Logger) (*Rabbit, error) {
 		false,                    // no-wait
 		nil,                      // arguments
 	)
-	return &Rabbit{conn, ch, log}, nil
+	HeartBeatQ, err := InitRabbit.InitHeartBeat(ch)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+	TaskResultQ, err := InitRabbit.InitTaskResult(ch)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+	RegisterQ, err := InitRabbit.InitRegister(ch)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+	return &Rabbit{
+		conn:        conn,
+		channel:     ch,
+		HeartBearQ:  HeartBeatQ,
+		RegisteredQ: RegisterQ,
+		TaskREsultQ: TaskResultQ,
+	}, nil
 }
