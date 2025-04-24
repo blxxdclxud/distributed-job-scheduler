@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+    rabbitmq:
+        image: rabbitmq:3-management
+        user: rabbitmq
+        networks:
+            - internal
+        healthcheck:
+            test: [ "CMD", "rabbitmq-diagnostics", "check_port_connectivity" ]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+
+    host:
+        build:
+            context: ..
+            dockerfile: Dockerfile
+            target: server
+        depends_on:
+            rabbitmq:
+                condition: service_healthy
+        networks:
+            - internal
+            - external
+        command: [ "-rmq", "amqp://guest:guest@rabbitmq:5672/" ]
+        ports:
+            - "8080:8080"
+
+    worker1:
+        build:
+            context: ..
+            dockerfile: Dockerfile
+            target: worker
+        depends_on:
+            rabbitmq:
+                condition: service_healthy
+        networks:
+            - internal
+        command: [ "-rmq", "amqp://guest:guest@rabbitmq:5672/" ]
+        restart: unless-stopped
+
+    worker2:
+        build:
+            context: ..
+            dockerfile: Dockerfile
+            target: worker
+        depends_on:
+            rabbitmq:
+                condition: service_healthy
+        networks:
+            - internal
+        command: [ "-rmq", "amqp://guest:guest@rabbitmq:5672/" ]
+        restart: unless-stopped
+
+networks:
+    internal:
+        internal: true
+    external:
