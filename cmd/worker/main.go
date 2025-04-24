@@ -2,17 +2,20 @@ package main
 
 import (
 	"context"
-	"github.com/google/uuid"
-	amqp "github.com/rabbitmq/amqp091-go"
-	"gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/shared/globals"
-	"gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/shared/models"
-	"gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/worker/messaging"
+	"flag"
+	"fmt"
 	"log"
 	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/google/uuid"
+	amqp "github.com/rabbitmq/amqp091-go"
+	"gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/shared/globals"
+	"gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/shared/models"
+	"gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/worker/messaging"
 )
 
 const (
@@ -28,7 +31,14 @@ func failOnError(err error, msg string) {
 }
 
 func main() {
-	conn, err := amqp.Dial(globals.RabbitMqUrl)
+	var rmq_host string
+
+	flag.StringVar(&rmq_host, "rmq", "amqp://guest:guest@localhost:5672/", "rabbitmq host address")
+
+	flag.Parse()
+	fmt.Println("rmq host:", rmq_host)
+
+	conn, err := amqp.Dial(rmq_host)
 	failOnError(err, "Failed to connect to RabbitMQ")
 	log := setupLogger(envLocal)
 	id := uuid.New().String()
