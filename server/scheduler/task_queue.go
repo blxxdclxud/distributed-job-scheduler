@@ -1,9 +1,9 @@
 package scheduler
 
 import (
-	models2 "DistributedJobScheduling/server/models"
-	"DistributedJobScheduling/shared/models"
 	"github.com/golang-collections/collections/queue"
+	models2 "gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/server/models"
+	"gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/shared/models"
 )
 
 // JobQueues stores all tasks in corresponding queues, grouped by priority level. Acts as a map.

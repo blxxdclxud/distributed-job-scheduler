@@ -1,8 +1,8 @@
 package server
 
 import (
-	"DistributedJobScheduling/server/api"
-	"DistributedJobScheduling/server/scheduler"
+	"gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/server/api"
+	"gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/server/scheduler"
 	"net/http"
 )
 

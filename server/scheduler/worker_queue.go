@@ -1,7 +1,7 @@
 package scheduler
 
 import (
-	"DistributedJobScheduling/shared/models"
+	"gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/shared/models"
 	"github.com/golang-collections/collections/queue"
 )
 
