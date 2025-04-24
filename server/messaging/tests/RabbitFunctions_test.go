@@ -32,8 +32,10 @@ func Test_Rabbit(t *testing.T) {
 	go r.ListenTaskResults(ch3)
 	time.Sleep(10 * time.Second)
 	var workerId string
+	var n Rabbit.RegistrationWrapper
 	select {
-	case workerId = <-ch2:
+	case n = <-ch2:
+		workerId = n.WorkerId
 		fmt.Println("Получен workerId:", workerId)
 	case <-time.After(10 * time.Second):
 		fmt.Println("Failed to get Id")
