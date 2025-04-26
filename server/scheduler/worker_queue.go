@@ -1,8 +1,8 @@
 package scheduler
 
 import (
-	"gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/shared/models"
 	"github.com/golang-collections/collections/queue"
+	"gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/shared/models"
 )
 
 // WorkerQueue stores all workers and acts as queue

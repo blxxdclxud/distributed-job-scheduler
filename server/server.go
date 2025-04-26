@@ -1,9 +1,11 @@
 package server
 
 import (
+	"net/http"
+
+	"gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/pkg/logger"
 	"gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/server/api"
 	"gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/server/scheduler"
-	"net/http"
 )
 
 // RunServer initializes all components of the server: API, scheduler, etc...
@@ -13,5 +15,11 @@ func RunServer() {
 
 	apiHandler := api.Handler{Scheduler: sched}
 	router := api.RegisterRoutes(apiHandler)
-	http.Handle("/", router)
+
+	logger.Debug("Starting server on :8080")
+
+	err := http.ListenAndServe(":8080", router)
+	if err != nil {
+		logger.Error("Failed to start server.")
+	}
 }

@@ -6,6 +6,7 @@ import (
 	"log"
 
 	logger "gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/pkg/logger"
+	"gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/server"
 )
 
 func main() {
@@ -20,4 +21,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to initialize logger: %v", err)
 	}
+
+	server.RunServer()
 }

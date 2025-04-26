@@ -2,10 +2,11 @@ package models
 
 // add here worker, heartbeat structs and other related things
 import (
+	"log/slog"
+
 	"github.com/rabbitmq/amqp091-go"
 	HealthReporter2 "gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/worker/HealthReporter"
 	Executor2 "gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/worker/executor"
-	"log/slog"
 )
 
 type Worker struct {
@@ -40,4 +41,8 @@ func (w *Worker) Start() {
 	w.Logger.Info("Starting worker", "worker_id", w.workerId)
 	go w.Executor.ListenTasks(w.workerId)
 	go w.HealthReporter.SendHealthChecks(w.workerId)
+}
+
+func (w *Worker) GetID() string {
+	return w.workerId
 }
