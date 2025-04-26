@@ -15,18 +15,32 @@ func NewWorkerQueue() *WorkerQueue {
 	return &WorkerQueue{q: queue.New()}
 }
 
-// Add appends given task to the corresponding queue according to task's priority
-func (w *WorkerQueue) Add(task models.Worker) {
-	w.q.Enqueue(task)
+// Add appends given worker to the queue
+func (w *WorkerQueue) Add(worker models.Worker) {
+	w.q.Enqueue(worker)
 }
 
-// Get returns the next available worker that will perform the task.
-// Returns nil if no workers exist.
+// Get returns the next available worker using round-robin scheduling.
+// The worker is dequeued and then enqueued again to maintain the rotation.
+// Returns the worker and true if one exists, otherwise an empty worker and false.
 func (w *WorkerQueue) Get() (models.Worker, bool) {
-
-	if worker, ok := w.q.Dequeue().(models.Worker); ok {
-		return worker, true
+	if w.q.Len() == 0 {
+		return models.Worker{}, false
 	}
-	return models.Worker{}, false
 
+	// Get the worker from the front of the queue
+	worker, ok := w.q.Dequeue().(models.Worker)
+	if !ok {
+		return models.Worker{}, false
+	}
+
+	// Put the worker back at the end of the queue to maintain round-robin
+	w.q.Enqueue(worker)
+
+	return worker, true
+}
+
+// Size returns the number of workers in the queue
+func (w *WorkerQueue) Size() int {
+	return w.q.Len()
 }

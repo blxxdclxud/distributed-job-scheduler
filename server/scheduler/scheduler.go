@@ -3,6 +3,7 @@ package scheduler
 import (
 	"context"
 	"fmt"
+	"log"
 	"strconv"
 	"sync"
 	"time"
@@ -58,18 +59,27 @@ func (s *Scheduler) RoundRobin() *sharedModels.Worker {
 
 // AssignTask chooses the worker to perform the job and assigns task to it, if there are so.
 func (s *Scheduler) AssignTask() {
+	log.Printf("Begin assigning the task to a worker")
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
 	worker := s.roundRobinUnlocked() // Use unlocked version to avoid deadlock
+	log.Printf("got worker")
 	if worker != nil {
+		log.Printf("worker is not nil")
 		if task, ok := s.Jobs.Get(); ok {
+			log.Printf("setting context")
+
 			// Send the job to the worker using messaging
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
 
+			log.Printf("getting worker id")
+
 			// Get worker ID - this assumes the Worker struct has a field or method to get ID
-			workerId := worker.GetID() // You might need to implement this method
+			workerId := worker.GetID()
+
+			log.Printf("sending the task to the worker")
 
 			err := s.rabbitClient.SendTaskToWorker(ctx, task.Script, workerId, strconv.Itoa(task.JobID))
 			if err != nil {
