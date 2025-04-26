@@ -3,9 +3,12 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"flag"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -23,13 +26,38 @@ type JobResponse struct {
 }
 
 func main() {
-	// Create a Lua script that calculates 5*10
-	luaScript := "local a, b = 5, 10; return a * b"
+	// Define command-line flags
+	scriptFile := flag.String("file", "-", "File containing the Lua script (use '-' for stdin)")
+	serverAddr := flag.String("host", "localhost:8080", "Address of the job server")
+	priority := flag.Int("priority", 1, "Job priority (0=high, 1=medium, 2=low)")
+	flag.Parse()
+
+	// Read the script from the specified file or stdin
+	var script string
+	var err error
+	if *scriptFile == "-" {
+		fmt.Println("Reading Lua script from stdin (type your script and press Ctrl+D when done):")
+		scriptBytes, err := io.ReadAll(os.Stdin)
+		if err != nil {
+			log.Fatalf("Error reading from stdin: %v", err)
+		}
+		script = string(scriptBytes)
+	} else {
+		scriptBytes, err := os.ReadFile(*scriptFile)
+		if err != nil {
+			log.Fatalf("Error reading script file %s: %v", *scriptFile, err)
+		}
+		script = string(scriptBytes)
+	}
+
+	if script == "" {
+		log.Fatal("No script provided. Please provide a script via file or stdin.")
+	}
 
 	// Create the job request
 	jobRequest := JobRequest{
-		Script:   luaScript,
-		Priority: 1, // Mid priority
+		Script:   script,
+		Priority: *priority,
 	}
 
 	// Convert request to JSON
@@ -38,10 +66,13 @@ func main() {
 		log.Fatalf("Error creating request JSON: %v", err)
 	}
 
+	// Build the server URL
+	serverURL := fmt.Sprintf("http://%s", *serverAddr)
+	submitURL := fmt.Sprintf("%s/submit_job", serverURL)
+
 	// Submit the job
-	fmt.Println("Submitting job to server...")
-	resp, err := http.Post("http://localhost:8080/submit_job",
-		"application/json", bytes.NewBuffer(requestBody))
+	fmt.Printf("Submitting job to server at %s...\n", serverURL)
+	resp, err := http.Post(submitURL, "application/json", bytes.NewBuffer(requestBody))
 	if err != nil {
 		log.Fatalf("Error submitting job: %v", err)
 	}
@@ -63,7 +94,7 @@ func main() {
 	for {
 		time.Sleep(1 * time.Second) // Poll every second
 
-		statusURL := fmt.Sprintf("http://localhost:8080/status/%d", jobID)
+		statusURL := fmt.Sprintf("%s/status/%d", serverURL, jobID)
 		statusResp, err := http.Get(statusURL)
 		if err != nil {
 			log.Printf("Error checking job status: %v", err)
