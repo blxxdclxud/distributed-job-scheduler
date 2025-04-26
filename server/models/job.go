@@ -7,4 +7,5 @@ type Job struct {
 	Priority models.JobPriority
 	Script   string
 	Status   models.JobStatus
+	Result   string // Add result field
 }

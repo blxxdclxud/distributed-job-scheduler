@@ -40,13 +40,29 @@ func (s *Scheduler) SetRabbitClient(client *messaging.Rabbit) {
 	s.rabbitClient = client
 }
 
+// Create a private method without mutex lock
+func (s *Scheduler) roundRobinUnlocked() *sharedModels.Worker {
+	if worker, ok := s.AvailableWorkers.Get(); ok {
+		return &worker
+	}
+	return nil
+}
+
+// Public method with mutex lock
+func (s *Scheduler) RoundRobin() *sharedModels.Worker {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
+	return s.roundRobinUnlocked()
+}
+
 // AssignTask chooses the worker to perform the job and assigns task to it, if there are so.
 func (s *Scheduler) AssignTask() {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
-	worker := s.RoundRobin() // exactly here it uses Round-robin to select the worker
-	if worker != nil {       // enqueue task only if there are an available worker
+	worker := s.roundRobinUnlocked() // Use unlocked version to avoid deadlock
+	if worker != nil {
 		if task, ok := s.Jobs.Get(); ok {
 			// Send the job to the worker using messaging
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -77,8 +93,8 @@ func (s *Scheduler) ReassignTask(task models.Job) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
-	worker := s.RoundRobin()
-	if worker != nil { // enqueue task only if there are an available worker
+	worker := s.roundRobinUnlocked() // Use unlocked version
+	if worker != nil {               // enqueue task only if there are an available worker
 		// Send the job to the worker using messaging
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
@@ -100,19 +116,6 @@ func (s *Scheduler) ReassignTask(task models.Job) {
 			logger.Debug(fmt.Sprintf("Task %d reassigned to worker %s", task.JobID, workerId))
 		}
 	}
-}
-
-// RoundRobin is the algorithm that AssignTask will use to select the worker.
-// Workers are stored in queue, so it just dequeues one of them, ensuring the algorithm's logic
-func (s *Scheduler) RoundRobin() *sharedModels.Worker {
-	// apply mutex to lock the workers queue for other goroutines
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
-
-	if worker, ok := s.AvailableWorkers.Get(); ok {
-		return &worker
-	}
-	return nil
 }
 
 // EnqueueJob adds new job to jobs queue. Job is formed from passed priority level and script.
@@ -141,15 +144,29 @@ func (s *Scheduler) EnqueueJob(priority sharedModels.JobPriority, script string)
 // GetJob returns the models.Job object by its ID
 func (s *Scheduler) GetJob(jobID int) (models.Job, error) {
 	s.mutex.Lock()
-	defer s.mutex.Unlock()
+	defer s.mutex.Unlock() // This ensures mutex is always unlocked
 
 	job, exists := s.AllJobs[jobID]
 	if !exists {
 		return models.Job{}, fmt.Errorf("job with ID %d not found", jobID)
 	}
 
-	logger.Debug(fmt.Sprintf("Getting job: %d, status: %s", jobID, job.Status))
 	return job, nil
+}
+
+// UpdateJob updates an existing job in the scheduler
+func (s *Scheduler) UpdateJob(jobID int, job models.Job) error {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
+	_, exists := s.AllJobs[jobID]
+	if !exists {
+		return fmt.Errorf("job with ID %d not found", jobID)
+	}
+
+	s.AllJobs[jobID] = job
+	logger.Debug(fmt.Sprintf("Updated job %d, new status: %s", jobID, job.Status))
+	return nil
 }
 
 // RegisterWorker adds new worker to the system.
