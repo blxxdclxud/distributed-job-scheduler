@@ -19,10 +19,11 @@ type Scheduler struct {
 	AvailableWorkers  WorkerQueue           // Queue that stores round-robin order of available (free) workers
 	TotalWorkers      []sharedModels.Worker // Stores all registered workers: busy and available ones
 	Jobs              JobQueues             // Queues that store jobs grouped by priority level
-	ReceivedJobsCount int                   // A counter for amount of total number of jobs received from API, used for job ID generating
+	ReceivedJobsCount int                   // A counter for amount of total number of jobs received from API
 	mutex             sync.Mutex
 	AllJobs           map[int]models.Job // Store all jobs
 	rabbitClient      *messaging.Rabbit  // Client for messaging with workers
+	WorkerAssignments map[string][]int   // Maps worker IDs to their assigned job IDs
 }
 
 // NewScheduler initializes new Scheduler object with empty queues
@@ -33,6 +34,7 @@ func NewScheduler() *Scheduler {
 		ReceivedJobsCount: 0,
 		mutex:             sync.Mutex{},
 		AllJobs:           make(map[int]models.Job),
+		WorkerAssignments: make(map[string][]int),
 	}
 }
 
@@ -59,7 +61,6 @@ func (s *Scheduler) RoundRobin() *sharedModels.Worker {
 
 // AssignTask chooses the worker to perform the job and assigns task to it, if there are so.
 func (s *Scheduler) AssignTask() {
-	log.Printf("Begin assigning the task to a worker")
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
@@ -91,6 +92,12 @@ func (s *Scheduler) AssignTask() {
 				job := s.AllJobs[task.JobID]
 				job.Status = sharedModels.StatusRunning
 				s.AllJobs[task.JobID] = job
+
+				// Track this assignment
+				if _, exists := s.WorkerAssignments[workerId]; !exists {
+					s.WorkerAssignments[workerId] = []int{}
+				}
+				s.WorkerAssignments[workerId] = append(s.WorkerAssignments[workerId], task.JobID)
 
 				logger.Debug(fmt.Sprintf("Task %d assigned to worker %s", task.JobID, workerId))
 			}
@@ -164,18 +171,35 @@ func (s *Scheduler) GetJob(jobID int) (models.Job, error) {
 	return job, nil
 }
 
-// UpdateJob updates an existing job in the scheduler
-func (s *Scheduler) UpdateJob(jobID int, job models.Job) error {
+// UpdateJob updates an existing job in the scheduler with new status and result
+func (s *Scheduler) UpdateJob(jobID int, status sharedModels.JobStatus, result string) error {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
-	_, exists := s.AllJobs[jobID]
+	job, exists := s.AllJobs[jobID]
 	if !exists {
 		return fmt.Errorf("job with ID %d not found", jobID)
 	}
 
+	job.Status = status
+	job.Result = result
 	s.AllJobs[jobID] = job
-	logger.Debug(fmt.Sprintf("Updated job %d, new status: %s", jobID, job.Status))
+
+	// If the job is now complete or failed, remove it from worker assignments
+	if status == sharedModels.StatusCompleted || status == sharedModels.StatusFailed {
+		// Find which worker had this job
+		for workerId, assignments := range s.WorkerAssignments {
+			for i, id := range assignments {
+				if id == jobID {
+					// Remove this job from the assignments
+					s.WorkerAssignments[workerId] = append(assignments[:i], assignments[i+1:]...)
+					break
+				}
+			}
+		}
+	}
+
+	logger.Debug(fmt.Sprintf("Updated job %d, new status: %s", jobID, status))
 	return nil
 }
 
@@ -183,6 +207,75 @@ func (s *Scheduler) UpdateJob(jobID int, job models.Job) error {
 func (s *Scheduler) RegisterWorker(worker sharedModels.Worker) {
 	s.AvailableWorkers.Add(worker)                  // add to round-robin queue
 	s.TotalWorkers = append(s.TotalWorkers, worker) // add to list of all workers
+}
+
+// RemoveWorker removes a worker from the system by its ID and reschedules its tasks
+func (s *Scheduler) RemoveWorker(workerID string) error {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
+	logger.Debug(fmt.Sprintf("Removing worker: %s", workerID))
+
+	// Check if there are any tasks assigned to this worker
+	jobIDs, workerHasJobs := s.WorkerAssignments[workerID]
+
+	// Reschedule all jobs assigned to this worker
+	if workerHasJobs {
+		logger.Info(fmt.Sprintf("Rescheduling %d jobs from failed worker %s", len(jobIDs), workerID))
+		for _, jobID := range jobIDs {
+			if job, exists := s.AllJobs[jobID]; exists && job.Status == sharedModels.StatusRunning {
+				logger.Debug(fmt.Sprintf("Rescheduling job %d from failed worker", jobID))
+
+				// Reset job status to pending
+				job.Status = sharedModels.StatusPending
+				s.AllJobs[jobID] = job
+
+				// Re-add to job queue
+				s.Jobs.Add(job)
+			}
+		}
+
+		// Clear the assignments for this worker
+		delete(s.WorkerAssignments, workerID)
+	}
+
+	// Create a new queue without the specified worker
+	newQueue := NewWorkerQueue()
+
+	// Get all the workers from existing queue
+	removedCount := 0
+	totalWorkers := s.AvailableWorkers.Size()
+
+	for i := 0; i < totalWorkers; i++ {
+		if worker, ok := s.AvailableWorkers.Get(); ok {
+			if worker.GetID() != workerID {
+				// Keep this worker
+				newQueue.Add(worker)
+			} else {
+				removedCount++
+			}
+		}
+	}
+
+	// Replace the old queue with the filtered one
+	s.AvailableWorkers = *newQueue
+
+	// Also remove from TotalWorkers slice
+	newTotalWorkers := make([]sharedModels.Worker, 0, len(s.TotalWorkers)-removedCount)
+	for _, worker := range s.TotalWorkers {
+		if worker.GetID() != workerID {
+			newTotalWorkers = append(newTotalWorkers, worker)
+		}
+	}
+	s.TotalWorkers = newTotalWorkers
+
+	logger.Info(fmt.Sprintf("Removed worker %s and rescheduled its tasks", workerID))
+
+	if removedCount == 0 && !workerHasJobs {
+		return fmt.Errorf("worker %s not found in the pool", workerID)
+	}
+
+	return nil
 }
 
 // StartTaskProcessing begins a goroutine to continuously process tasks
@@ -196,4 +289,27 @@ func (s *Scheduler) StartTaskProcessing() {
 		}
 	}()
 	logger.Debug("Task processing started")
+}
+
+// Add this to your job status update logic
+func (s *Scheduler) completeJob(jobID int, workerId string, result string, status sharedModels.JobStatus) {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
+	if job, exists := s.AllJobs[jobID]; exists {
+		job.Status = status
+		job.Result = result
+		s.AllJobs[jobID] = job
+
+		// Remove this job from worker assignments
+		if assignments, exists := s.WorkerAssignments[workerId]; exists {
+			newAssignments := make([]int, 0, len(assignments)-1)
+			for _, id := range assignments {
+				if id != jobID {
+					newAssignments = append(newAssignments, id)
+				}
+			}
+			s.WorkerAssignments[workerId] = newAssignments
+		}
+	}
 }

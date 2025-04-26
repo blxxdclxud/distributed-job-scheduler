@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 
@@ -74,41 +75,36 @@ func RunServer(rmqHost string) {
 				continue
 			}
 
-			// Parse job ID from string to int
-			jobID := 0
-			if result.TaskReply.JobId != "" {
-				_, err := fmt.Sscanf(result.TaskReply.JobId, "%d", &jobID)
-				if err != nil {
-					logger.Error("Invalid job ID in result: " + result.TaskReply.JobId)
-					continue
-				}
-			}
-
-			logger.Debug("Received result for job " + result.TaskReply.JobId)
-
-			// Update job status based on result
-			job, err := sched.GetJob(jobID)
+			jobID, err := strconv.Atoi(result.TaskReply.JobId)
 			if err != nil {
-				logger.Error("Job not found: " + err.Error())
+				logger.Error("Invalid job ID in result: " + result.TaskReply.JobId)
 				continue
 			}
 
-			// Update job status and result
+			logger.Debug(fmt.Sprintf("Received result for job %d from worker %s",
+				jobID, result.TaskReply.WorkerId))
+
+			var status models.JobStatus
+			var resultStr string
+
 			if result.TaskReply.Err != nil {
-				job.Status = models.StatusFailed
-				job.Result = result.TaskReply.Err.Error()
+				status = models.StatusFailed
+				resultStr = result.TaskReply.Err.Error()
+				logger.Warn(fmt.Sprintf("Job %d failed: %s", jobID, resultStr))
 			} else {
-				job.Status = models.StatusCompleted
-				// Convert result to string
-				resultStr := ""
+				status = models.StatusCompleted
 				if result.TaskReply.Results != nil {
 					resultStr = fmt.Sprintf("%v", result.TaskReply.Results)
 				}
-				job.Result = resultStr
+				logger.Info(fmt.Sprintf("Job %d completed successfully with result: %s",
+					jobID, resultStr))
 			}
 
-			// Update job in scheduler
-			sched.UpdateJob(jobID, job)
+			// Update job status with the result
+			err = sched.UpdateJob(jobID, status, resultStr)
+			if err != nil {
+				logger.Error("Failed to update job: " + err.Error())
+			}
 		}
 	}()
 
@@ -131,8 +127,17 @@ func RunServer(rmqHost string) {
 				threshold := time.Now().Add(-30 * time.Second)
 				for workerID, lastSeen := range workerLastSeen {
 					if lastSeen.Before(threshold) {
-						logger.Warn("Worker may be down: " + workerID)
-						// Here you could implement logic to handle dead workers
+						logger.Warn(fmt.Sprintf("Worker %s hasn't sent heartbeat in >30s, removing...", workerID))
+
+						// Remove worker and reschedule its tasks
+						err := sched.RemoveWorker(workerID)
+						if err != nil {
+							logger.Error(fmt.Sprintf("Failed to remove worker: %v", err))
+						} else {
+							// Delete from map to prevent repeated removal attempts
+							delete(workerLastSeen, workerID)
+							logger.Info(fmt.Sprintf("Worker %s removed and its tasks rescheduled", workerID))
+						}
 					}
 				}
 			}
