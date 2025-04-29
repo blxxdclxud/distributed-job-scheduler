@@ -3,7 +3,6 @@ package scheduler
 import (
 	"context"
 	"fmt"
-	"log"
 	"strconv"
 	"sync"
 	"time"
@@ -65,22 +64,16 @@ func (s *Scheduler) AssignTask() {
 	defer s.mutex.Unlock()
 
 	worker := s.roundRobinUnlocked() // Use unlocked version to avoid deadlock
-	log.Printf("got worker")
 	if worker != nil {
-		log.Printf("worker is not nil")
 		if task, ok := s.Jobs.Get(); ok {
-			log.Printf("setting context")
-
 			// Send the job to the worker using messaging
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
 
-			log.Printf("getting worker id")
-
 			// Get worker ID - this assumes the Worker struct has a field or method to get ID
 			workerId := worker.GetID()
 
-			log.Printf("sending the task to the worker")
+			logger.Debug(fmt.Sprintf("Assinging task %d to worker %s", task.JobID, workerId))
 
 			err := s.rabbitClient.SendTaskToWorker(ctx, task.Script, workerId, strconv.Itoa(task.JobID))
 			if err != nil {
@@ -118,6 +111,8 @@ func (s *Scheduler) ReassignTask(task models.Job) {
 
 		// Get worker ID
 		workerId := worker.GetID() // You might need to implement this method
+
+		logger.Debug(fmt.Sprintf("Reasigning task %d to worker %s", task.JobID, workerId))
 
 		err := s.rabbitClient.SendTaskToWorker(ctx, task.Script, workerId, strconv.Itoa(task.JobID))
 		if err != nil {
@@ -289,27 +284,4 @@ func (s *Scheduler) StartTaskProcessing() {
 		}
 	}()
 	logger.Debug("Task processing started")
-}
-
-// Add this to your job status update logic
-func (s *Scheduler) completeJob(jobID int, workerId string, result string, status sharedModels.JobStatus) {
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
-
-	if job, exists := s.AllJobs[jobID]; exists {
-		job.Status = status
-		job.Result = result
-		s.AllJobs[jobID] = job
-
-		// Remove this job from worker assignments
-		if assignments, exists := s.WorkerAssignments[workerId]; exists {
-			newAssignments := make([]int, 0, len(assignments)-1)
-			for _, id := range assignments {
-				if id != jobID {
-					newAssignments = append(newAssignments, id)
-				}
-			}
-			s.WorkerAssignments[workerId] = newAssignments
-		}
-	}
 }

@@ -1,0 +1,9 @@
+bin/
+*.log
+*.out
+*.test
+.git/
+.vscode/
+.idea/
+Dockerfile
+docker-compose.yml
