@@ -87,15 +87,13 @@ func RunServer(rmqHost string) {
 			var status models.JobStatus
 			var resultStr string
 
-			if result.TaskReply.Err != nil {
+			if result.TaskReply.Err != "" {
 				status = models.StatusFailed
-				resultStr = result.TaskReply.Err.Error()
+				resultStr = result.TaskReply.Err
 				logger.Warn(fmt.Sprintf("Job %d failed: %s", jobID, resultStr))
 			} else {
 				status = models.StatusCompleted
-				if result.TaskReply.Results != nil {
-					resultStr = fmt.Sprintf("%v", result.TaskReply.Results)
-				}
+				resultStr = result.TaskReply.Results
 				logger.Info(fmt.Sprintf("Job %d completed successfully with result: %s",
 					jobID, resultStr))
 			}

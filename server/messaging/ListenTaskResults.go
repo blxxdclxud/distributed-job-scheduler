@@ -3,8 +3,8 @@ package messaging
 import (
 	"encoding/json"
 	"fmt"
+
 	Rabbit2 "gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/shared/models/Rabbit"
-	"go.uber.org/zap"
 )
 
 func (r *Rabbit) ListenTaskResults(c chan Rabbit2.TaskReplyWrapper) {
@@ -31,7 +31,7 @@ func (r *Rabbit) ListenTaskResults(c chan Rabbit2.TaskReplyWrapper) {
 			var m Rabbit2.TaskReply
 			err = json.Unmarshal(d.Body, &m)
 			if err != nil {
-				fmt.Printf("Failed to unmarshal", zap.Error(err))
+				fmt.Printf("Failed to unmarshal", "error", err)
 			}
 			message := Rabbit2.TaskReplyWrapper{
 				TaskReply: m,

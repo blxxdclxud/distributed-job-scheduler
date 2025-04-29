@@ -1,10 +1,10 @@
 package Rabbit
 
 type TaskReply struct {
-	Results  interface{}
+	Results  string
 	WorkerId string
 	JobId    string
-	Err      error
+	Err      string
 }
 
 type TaskReplyWrapper struct {

@@ -111,10 +111,16 @@ func (e *Executor) ListenTasks(workerId string) {
 			} else {
 				resultStr = ""
 			}
+			var errStr string
+			if err != nil {
+				errStr = err.Error()
+			} else {
+				errStr = ""
+			}
 			message := Rabbit.TaskReply{
 				Results:  resultStr,
 				WorkerId: workerId,
-				Err:      err,
+				Err:      errStr,
 				JobId:    task.JobId,
 			}
 			routing_key := "result." + workerId
