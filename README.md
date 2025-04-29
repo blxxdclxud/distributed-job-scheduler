@@ -28,19 +28,19 @@ docker-compose -f docker-compose.yml up
 
 ## Authors and acknowledgment
 - **Egor Pustovoytenko**  
-  [<img src="https://img.icons8.com/color/24/telegram-app--v1.png" alt="Telegram"/> @egraPA](https://t.me/egraPA) 
+  <img src="https://img.icons8.com/color/24/telegram-app--v1.png" alt="Telegram" style="vertical-align: middle; margin-right: 4px; width: 20px; height: 20px;"/> [@egraPA](https://t.me/egraPA)
 
 - **Askar Dinikeev**  
-  [<img src="https://img.icons8.com/color/24/telegram-app--v1.png" alt="Telegram"/> @bailey_64](https://t.me/bailey_64) 
+  <img src="https://img.icons8.com/color/24/telegram-app--v1.png" alt="Telegram" style="vertical-align: middle; margin-right: 4px; width: 20px; height: 20px;"/> [@bailey_64](https://t.me/bailey_64)
 
 - **Niyaz Gubaidullin**  
-  [<img src="https://img.icons8.com/color/24/telegram-app--v1.png" alt="Telegram"/> @NetOtveto](https://t.me/NetOtveto) 
+  <img src="https://img.icons8.com/color/24/telegram-app--v1.png" alt="Telegram" style="vertical-align: middle; margin-right: 4px; width: 20px; height: 20px;"/> [@NetOtveto](https://t.me/NetOtveto)
 
 - **Ramazan Nazmiev**  
-  [<img src="https://img.icons8.com/color/24/telegram-app--v1.png" alt="Telegram"/> @ssstaticmethod](https://t.me/ssstaticmethod) 
+  <img src="https://img.icons8.com/color/24/telegram-app--v1.png" alt="Telegram" style="vertical-align: middle; margin-right: 4px; width: 20px; height: 20px;"/> [@ssstaticmethod](https://t.me/ssstaticmethod)
 
 - **Nurzhan Baxikov**  
-  [<img src="https://img.icons8.com/color/24/telegram-app--v1.png" alt="Telegram"/> @baksikoff](https://t.me/baksikoff) 
+  <img src="https://img.icons8.com/color/24/telegram-app--v1.png" alt="Telegram" style="vertical-align: middle; margin-right: 4px; width: 20px; height: 20px;"/> [@baksikoff](https://t.me/baksikoff)
 
 ## License
 
