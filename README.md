@@ -8,9 +8,15 @@ Distributed Job Scheduler
 The project is the development of a distributed task scheduling system designed for efficient management and distribution of computing loads in a multi-node environment. The system receives tasks from clients, distributes them between available worker nodes, and monitors the state of each node in real time.
 The goal of the project is to create a fault-tolerant and scalable architecture that guarantees correct execution of tasks, even if individual system components fail.
 
-## Badges
-
 ## Visuals
+
+### Basic job scheduling
+
+![](assets/dnp_demo1.mp4)
+
+### Job rescheduling
+
+![](assets/dnp_demo2.mp4)
 
 ## Installation
 ```bash
@@ -27,20 +33,15 @@ docker-compose -f docker-compose.yml up
 ```
 
 ## Authors and acknowledgment
-- **Egor Pustovoytenko**  
-  [@egraPA](https://t.me/egraPA)
+- **Egor Pustovoytenko** e.pustovoytenko@innopolis.university
 
-- **Askar Dinikeev**  
-  [@bailey_64](https://t.me/bailey_64)
+- **Askar Dinikeev** a.dinikeev@innopolis.university
 
-- **Niyaz Gubaidullin**  
-  [@NetOtveto](https://t.me/NetOtveto)
+- **Niyaz Gubaidullin** n.gubaidullin@innopolis.university
 
-- **Ramazan Nazmiev**  
-  [@ssstaticmethod](https://t.me/ssstaticmethod)
+- **Ramazan Nazmiev** r.nazmiev@innopolis.university
 
-- **Nurzhan Baxikov**  
-  [@baksikoff](https://t.me/baksikoff)
+- **Nurzhan Baxikov** n.baxikov@innopolis.university
 
 ## License
 
