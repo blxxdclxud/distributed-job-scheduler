@@ -26,11 +26,17 @@ cd Dnp25-project-19/deployments
 ```
 
 ## Usage
+### Host and Workers
 Getting the project up using docker compose
 ```bash
 cd deployments
 docker-compose -f docker-compose.yml build
 docker-compose -f docker-compose.yml up
+```
+### Client
+```bash
+go build cmd/client/main.go
+./main -file lua-examples/factorial.lua
 ```
 
 ## Authors and acknowledgment
