@@ -44,4 +44,5 @@ docker-compose -f docker-compose.yml up
 - **Nurzhan Baxikov** n.baxikov@innopolis.university
 
 ## License
+[MIT LICENSE](https://gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/-/blob/main/LICENSE)
 
