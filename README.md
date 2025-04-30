@@ -6,8 +6,8 @@
 Distributed Job Scheduler
 
 ## Description
-The project is the development of a distributed task scheduling system designed for efficient management and distribution of computing loads in a multi-node environment. The system receives tasks from clients, distributes them between available worker nodes, and monitors the state of each node in real time.
-The goal of the project is to create a fault-tolerant and scalable architecture that guarantees correct execution of tasks, even if individual system components fail.
+The goal of the project is a development of a distributed task scheduling system designed for efficient management and distribution of computing loads in a multi-node environment. The system receives tasks from clients, distributes them between available worker nodes, and monitors the state of each node in real time.
+Implemantations aims to create a fault-tolerant and scalable architecture that guarantees correct execution of tasks, even if individual system components fail.
 
 ## Visuals
 
