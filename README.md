@@ -1,5 +1,6 @@
 # Dnp25-project-19
-
+![Go Version](https://img.shields.io/badge/go-%3E%3D1.21-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
 
 ## Name
 Distributed Job Scheduler
