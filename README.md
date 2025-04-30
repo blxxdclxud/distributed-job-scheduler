@@ -40,15 +40,15 @@ go build cmd/client/main.go
 ```
 
 ## Authors and acknowledgment
-- **Egor Pustovoytenko** e.pustovoytenko@innopolis.university
+- **Egor Pustovoytenko** e.pustovoytenko@innopolis.university (Report, presentation and initial design)
 
-- **Askar Dinikeev** a.dinikeev@innopolis.university
+- **Askar Dinikeev** a.dinikeev@innopolis.university (Initial and final design, implementation, demo)
 
-- **Niyaz Gubaidullin** n.gubaidullin@innopolis.university
+- **Niyaz Gubaidullin** n.gubaidullin@innopolis.university (Implemantation)
 
-- **Ramazan Nazmiev** r.nazmiev@innopolis.university
+- **Ramazan Nazmiev** r.nazmiev@innopolis.university (Implemantation)
 
-- **Nurzhan Baxikov** n.baxikov@innopolis.university
+- **Nurzhan Baxikov** n.baxikov@innopolis.university (Management, documentation)
 
 ## License
 [MIT LICENSE](https://gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/-/blob/main/LICENSE)
