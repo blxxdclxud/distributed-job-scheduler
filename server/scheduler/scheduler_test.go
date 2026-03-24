@@ -19,7 +19,30 @@ func addWorkers(s *Scheduler, n int) {
 	}
 }
 
-// BenchmarkEnqueueJob placeholder — full implementation in plan 02.
+// BenchmarkEnqueueJob measures job submission throughput (BENCH-01).
 func BenchmarkEnqueueJob(b *testing.B) {
-	b.Skip("implemented in plan 02")
+	s := newTestScheduler()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		s.EnqueueJob(sharedModels.HighPriority, "return 1")
+	}
+	b.ReportMetric(float64(b.N)/b.Elapsed().Seconds(), "jobs/sec")
+}
+
+// BenchmarkPrioritySelection measures dequeue latency from mixed-priority queues (BENCH-03).
+func BenchmarkPrioritySelection(b *testing.B) {
+	s := newTestScheduler()
+	priorities := []sharedModels.JobPriority{
+		sharedModels.HighPriority,
+		sharedModels.MidPriority,
+		sharedModels.LowPriority,
+	}
+	b.StopTimer()
+	for i := 0; i < b.N; i++ {
+		s.EnqueueJob(priorities[i%3], "return 1")
+	}
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		s.Jobs.Get()
+	}
 }
