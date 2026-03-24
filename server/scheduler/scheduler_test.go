@@ -46,3 +46,22 @@ func BenchmarkPrioritySelection(b *testing.B) {
 		s.Jobs.Get()
 	}
 }
+
+// BenchmarkAssignTask measures worker-selection + job-dequeue latency (BENCH-02).
+func BenchmarkAssignTask(b *testing.B) {
+	s := newTestScheduler()
+	b.StopTimer()
+	// Pre-fill jobs and workers
+	for i := 0; i < b.N; i++ {
+		s.EnqueueJob(sharedModels.HighPriority, "return 1")
+	}
+	// Use a single worker, re-enqueue after each AssignTask call
+	w := sharedModels.Worker{ID: "bench-worker"}
+	s.RegisterWorker(w)
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		s.AssignTask()
+		// Re-enqueue worker so next iteration has a worker available
+		s.AvailableWorkers.Add(w)
+	}
+}
