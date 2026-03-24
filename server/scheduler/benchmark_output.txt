@@ -1,0 +1,12 @@
+goos: linux
+goarch: amd64
+pkg: gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/server/scheduler
+cpu: AMD Ryzen 5 5500U with Radeon Graphics         
+BenchmarkEnqueueJob-12           	 2106082	       321.9 ns/op	   3106623 jobs/sec	      72 B/op	       2 allocs/op
+BenchmarkPrioritySelection-12    	51210478	        27.37 ns/op	       0 B/op	       0 allocs/op
+BenchmarkAssignTask-12           	 1824540	       363.0 ns/op	      96 B/op	       3 allocs/op
+PASS
+ok  	gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/server/scheduler	19.640s
+
+=== Race Detector ===
+ok  	gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/server/scheduler	1.028s
