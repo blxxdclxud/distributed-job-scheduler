@@ -78,3 +78,27 @@ func TestRoundRobinDistribution(t *testing.T) {
 			maxCount, minCount, counts)
 	}
 }
+
+// TestConcurrentEnqueue verifies EnqueueJob is safe under concurrent access (CORR-03).
+// Run with: go test -race ./server/scheduler/...
+func TestConcurrentEnqueue(t *testing.T) {
+	const goroutines = 100
+	s := newTestScheduler()
+
+	done := make(chan struct{}, goroutines)
+	for i := 0; i < goroutines; i++ {
+		go func() {
+			defer func() { done <- struct{}{} }()
+			s.EnqueueJob(sharedModels.HighPriority, "return 1")
+		}()
+	}
+
+	for i := 0; i < goroutines; i++ {
+		<-done
+	}
+
+	// Verify all jobs were enqueued (ReceivedJobsCount should equal goroutines).
+	if s.ReceivedJobsCount != goroutines {
+		t.Errorf("expected %d jobs enqueued, got %d", goroutines, s.ReceivedJobsCount)
+	}
+}
