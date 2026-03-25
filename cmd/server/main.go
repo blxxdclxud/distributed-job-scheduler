@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/server"
 	"log"
 
 	logger "gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/pkg/logger"
@@ -20,4 +21,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to initialize logger: %v", err)
 	}
+
+	server.RunServer()
 }

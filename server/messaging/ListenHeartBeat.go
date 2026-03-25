@@ -9,7 +9,7 @@ import (
 
 func (r *Rabbit) ListenHeartBeat(c chan Rabbit2.HealthReportWrapper) {
 	msgs, err := r.channel.Consume(
-		r.HeartBearQ.Name, // queue
+		r.HeartBeatQ.Name, // queue
 		"",                // consumer
 		true,              // auto-ack
 		false,             // exclusive

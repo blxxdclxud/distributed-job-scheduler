@@ -10,9 +10,9 @@ import (
 type Rabbit struct {
 	conn        *amqp.Connection
 	channel     *amqp.Channel
-	HeartBearQ  amqp.Queue
+	HeartBeatQ  amqp.Queue
 	RegisteredQ amqp.Queue
-	TaskREsultQ amqp.Queue
+	TaskResultQ amqp.Queue
 }
 
 func NewRabbit(conn *amqp.Connection) (*Rabbit, error) {
@@ -78,8 +78,8 @@ func NewRabbit(conn *amqp.Connection) (*Rabbit, error) {
 	return &Rabbit{
 		conn:        conn,
 		channel:     ch,
-		HeartBearQ:  HeartBeatQ,
+		HeartBeatQ:  HeartBeatQ,
 		RegisteredQ: RegisterQ,
-		TaskREsultQ: TaskResultQ,
+		TaskResultQ: TaskResultQ,
 	}, nil
 }

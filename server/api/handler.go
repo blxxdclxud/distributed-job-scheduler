@@ -1,11 +1,13 @@
 package api
 
 import (
+	"encoding/json"
+	"github.com/gorilla/mux"
+	"gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/pkg/logger"
 	"gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/server/models"
 	"gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/server/scheduler"
 	sharedModels "gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/shared/models"
-	"encoding/json"
-	"github.com/gorilla/mux"
+	"go.uber.org/zap"
 	"net/http"
 	"strconv"
 )
@@ -29,6 +31,8 @@ func (h *Handler) SubmitJobHandler(w http.ResponseWriter, r *http.Request) {
 		ErrorResponse(w, http.StatusInternalServerError, "failed to pass the jobRequest to Scheduler")
 		return
 	}
+
+	logger.Info("Received job from a client", zap.Int("ID", jobID))
 
 	ResponseJson(w, http.StatusAccepted, models.JobResponse{
 		JobID:     jobID,

@@ -6,4 +6,5 @@ type Job struct {
 	JobID    int
 	Priority models.JobPriority
 	Script   string
+	Status   models.JobStatus
 }

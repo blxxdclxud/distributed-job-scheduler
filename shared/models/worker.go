@@ -9,7 +9,7 @@ import (
 )
 
 type Worker struct {
-	workerId       string
+	ID             string
 	RabbitMqConn   *amqp091.Connection
 	Logger         *slog.Logger
 	Executor       Executor
@@ -30,14 +30,14 @@ func NewWorker(connection *amqp091.Connection, Logger *slog.Logger, workerId str
 	return &Worker{
 		RabbitMqConn:   connection,
 		Logger:         Logger,
-		workerId:       workerId,
+		ID:             workerId,
 		HealthReporter: Health,
 		Executor:       executor,
 	}
 }
 
 func (w *Worker) Start() {
-	w.Logger.Info("Starting worker", "worker_id", w.workerId)
-	go w.Executor.ListenTasks(w.workerId)
-	go w.HealthReporter.SendHealthChecks(w.workerId)
+	w.Logger.Info("Starting worker", "worker_id", w.ID)
+	go w.Executor.ListenTasks(w.ID)
+	go w.HealthReporter.SendHealthChecks(w.ID)
 }
