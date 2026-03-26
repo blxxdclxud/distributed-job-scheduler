@@ -20,22 +20,17 @@ func (w *WorkerQueue) Add(worker models.Worker) {
 	w.q.Enqueue(worker)
 }
 
-// Get returns the next available worker using round-robin scheduling.
-// The worker is dequeued and then enqueued again to maintain the rotation.
+// Get dequeues and returns the next available worker.
 // Returns the worker and true if one exists, otherwise an empty worker and false.
 func (w *WorkerQueue) Get() (models.Worker, bool) {
 	if w.q.Len() == 0 {
 		return models.Worker{}, false
 	}
 
-	// Get the worker from the front of the queue
 	worker, ok := w.q.Dequeue().(models.Worker)
 	if !ok {
 		return models.Worker{}, false
 	}
-
-	// Put the worker back at the end of the queue to maintain round-robin
-	w.q.Enqueue(worker)
 
 	return worker, true
 }
