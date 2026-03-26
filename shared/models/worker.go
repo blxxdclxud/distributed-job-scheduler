@@ -43,12 +43,7 @@ func (w *Worker) Start() {
 	go w.HealthReporter.SendHealthChecks(w.ID)
 }
 
-// SetWorkerId sets the worker ID
-func (w *Worker) SetWorkerId(id string) {
-	w.workerId = id
-}
-
 // GetID returns the worker ID
 func (w *Worker) GetID() string {
-	return w.workerId
+	return w.ID
 }
