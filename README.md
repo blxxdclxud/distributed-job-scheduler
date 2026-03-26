@@ -13,11 +13,11 @@ Implemantations aims to create a fault-tolerant and scalable architecture that g
 
 ### Basic job scheduling
 
-![](assets/dnp_demo1.mp4)
+<video src="assets/dnp_demo1.mp4" controls width="100%"></video>
 
 ### Job rescheduling
 
-![](assets/dnp_demo2.mp4)
+<video src="assets/dnp_demo2.mp4" controls width="100%"></video>
 
 ## Installation
 ```bash
