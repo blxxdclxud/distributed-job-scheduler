@@ -4,14 +4,15 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
+	"time"
+
 	"github.com/Shopify/go-lua"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/shared/globals"
 	"gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/shared/models/Rabbit"
 	"gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/worker/HealthReporter"
 	"gitlab.pg.innopolis.university/e.pustovoytenko/dnp25-project-19/worker/messaging"
-	"log/slog"
-	"time"
 )
 
 type Executor struct {
@@ -104,16 +105,28 @@ func (e *Executor) ListenTasks(workerId string) {
 			if err != nil {
 				e.log.Error("Failed to process task", globals.ResultExchange, err)
 			}
+			var resultStr string
+			if res != nil {
+				resultStr = fmt.Sprintf("%v", res)
+			} else {
+				resultStr = ""
+			}
+			var errStr string
+			if err != nil {
+				errStr = err.Error()
+			} else {
+				errStr = ""
+			}
 			message := Rabbit.TaskReply{
-				Results:  res,
+				Results:  resultStr,
 				WorkerId: workerId,
-				Err:      err,
+				Err:      errStr,
 				JobId:    task.JobId,
 			}
 			routing_key := "result." + workerId
 			err = e.RabbitMQPublisher.PublishJSON(context.Background(), routing_key, message)
 			if err != nil {
-				e.log.Error("Failed sending results")
+				e.log.Error("Failed sending results", "error", err)
 			}
 		}
 	}()

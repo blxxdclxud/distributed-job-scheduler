@@ -1,12 +1,26 @@
-FROM golang:1.24-alpine AS builder
+FROM golang:1.24-alpine AS deps
 
-WORKDIR /app
+# Create a working directory
+WORKDIR /go/src/app
 
+# Copy only the dependency files
 COPY go.mod go.sum ./
+
+# Download dependencies - this layer will be cached unless go.mod/go.sum changes
 RUN go mod download
 
+FROM golang:1.24-alpine AS builder
+
+WORKDIR /go/src/app
+
+# Copy cached dependencies from the deps stage
+COPY --from=deps /go/pkg /go/pkg
+COPY --from=deps /go/src/app/go.mod /go/src/app/go.sum ./
+
+# Copy source code files
 COPY . .
 
+# Build the applications
 RUN CGO_ENABLED=0 GOOS=linux go build -o /app/bin/server ./cmd/server/main.go
 RUN CGO_ENABLED=0 GOOS=linux go build -o /app/bin/worker ./cmd/worker/main.go
 

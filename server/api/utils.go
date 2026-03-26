@@ -20,10 +20,11 @@ func ErrorResponse(w http.ResponseWriter, status int, msg string) {
 func ResponseJson(w http.ResponseWriter, status int, payload interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	_ = json.NewEncoder(w).Encode(payload)
 
-	payloadStr, _ := json.Marshal(payload)
+	if err := json.NewEncoder(w).Encode(payload); err != nil {
+		payloadStr, _ := json.Marshal(payload)
 
-	logger.Info("Successful response",
+	  logger.Info("Successful response",
 		zap.String("Payload", string(payloadStr)))
+	}
 }
