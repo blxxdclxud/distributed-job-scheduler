@@ -13,11 +13,43 @@ Implemantations aims to create a fault-tolerant and scalable architecture that g
 
 ### Basic job scheduling
 
-<video src="assets/dnp_demo1.mp4" controls width="100%"></video>
+Submit a Lua script and poll until the worker returns the result:
+
+```bash
+go build -o client cmd/client/main.go
+./client -file lua-examples/factorial.lua -priority 0
+```
+
+```
+Submitting job to server at http://localhost:8080...
+Job submitted successfully! Job ID: 1, Initial status: QUEUED
+Polling for job result...
+Current status: QUEUED
+Current status: IN_PROGRESS
+Current status: COMPLETED
+Job completed! Result: 7886578673647905035523632139321850622951359776871732632947425332443594499634033429203042840119846239041772121389196388302576427902426371050619266249528299311134628572707633172373969889439224456214516642402540332154
+```
 
 ### Job rescheduling
 
-<video src="assets/dnp_demo2.mp4" controls width="100%"></video>
+If a worker goes down mid-execution the scheduler detects the missed heartbeat and reassigns the job to another available worker:
+
+```bash
+./client -file lua-examples/downtest.lua -priority 1
+```
+
+```
+Submitting job to server at http://localhost:8080...
+Job submitted successfully! Job ID: 2, Initial status: QUEUED
+Polling for job result...
+Current status: QUEUED
+Current status: IN_PROGRESS
+Current status: IN_PROGRESS
+Current status: QUEUED        ← worker-1 went down, job rescheduled
+Current status: IN_PROGRESS   ← picked up by worker-2
+Current status: COMPLETED
+Job completed! Result: 3
+```
 
 ## Installation
 ```bash
